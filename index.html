@@ -55,8 +55,11 @@ body{font-family:var(--font);color:var(--n3);background:var(--wh);display:flex;h
 .tib svg{width:15px;height:15px}
 .panel{flex:1;overflow-y:auto;padding:24px;display:none}
 .panel.active{display:block}
-.wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:16px;align-items:start}
-.wcard{background:var(--wh);border:1px solid var(--br);border-radius:var(--r);overflow:hidden}
+.wgrid{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;align-items:start}
+.wcard{background:var(--wh);border:1px solid var(--br);border-radius:var(--r);overflow:hidden;position:relative}
+.wcard.w1{grid-column:span 1}
+.wcard.w2{grid-column:span 2}
+.wcard.w3{grid-column:span 3}
 .whd{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--br)}
 .whd-icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:var(--gp)}
 .whd-icon svg{width:15px;height:15px}
@@ -68,6 +71,14 @@ body{font-family:var(--font);color:var(--n3);background:var(--wh);display:flex;h
 .wab:hover{background:var(--f4);color:var(--n3)}
 .wab svg{width:13px;height:13px}
 .wbody{padding:14px}
+.rh{position:absolute;right:0;top:0;bottom:0;width:10px;cursor:col-resize;z-index:10;display:flex;align-items:center;justify-content:center;opacity:0;transition:opacity .15s}
+.wcard:hover .rh{opacity:1}
+.rh::after{content:'';width:3px;height:32px;background:var(--dd);border-radius:2px;transition:background .15s}
+.rh:hover::after{background:var(--gp)}
+.wcard.dragging .rh::after{background:var(--gp)}
+.wcard.dragging{outline:2px dashed var(--gp);outline-offset:-2px;opacity:.88}
+.snap-badge{position:absolute;bottom:8px;right:14px;background:var(--gp);color:white;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;pointer-events:none;opacity:0;transition:opacity .1s;z-index:20}
+.wcard.dragging .snap-badge{opacity:1}
 .mlist{display:flex;flex-direction:column;gap:5px}
 .mrow{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--f8);border-radius:5px;min-width:0}
 .mdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
@@ -680,7 +691,7 @@ function saveWidget(){
     if(w){ w.entity=selE; w.viz=selV; w.name=name; w.xAxis=xAxis; w.yAxis=yAxis; w.groupBy=groupBy; w.em=em; w.vm=vm; }
     closeModal(); renderWidgets(); toast('Widget updated!');
   } else {
-    widgets.push({id:Date.now(),entity:selE,viz:selV,name:name,xAxis:xAxis,yAxis:yAxis,groupBy:groupBy,em:em,vm:vm});
+    widgets.push({id:Date.now(),entity:selE,viz:selV,name:name,xAxis:xAxis,yAxis:yAxis,groupBy:groupBy,em:em,vm:vm,cols:2});
     closeModal(); renderWidgets(); toast('Widget "'+name+'" added!');
   }
 }
@@ -748,11 +759,11 @@ function renderWidgets(){
   } else {
     widgets.forEach(function(w){
       var em=w.em||EM[w.entity];
-      var c=document.createElement('div'); c.className='wcard'; c.id='w'+w.id;
-      c.innerHTML='<div class="whd"><div class="whd-icon">'+vizIcon(w.viz)+'</div><span class="wtitle">'+esc(w.name)+'</span><span class="wetag">'+esc(em.label)+'</span><div class="wac"><button class="wab" title="Edit" onclick="editWidget('+w.id+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="wab" title="Remove" onclick="removeWidget('+w.id+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div></div><div class="wbody">'+getBody(w)+'</div>';
+      var c=document.createElement('div'); c.className='wcard w'+(w.cols||2); c.id='w'+w.id;
+      c.innerHTML='<div class="whd"><div class="whd-icon">'+vizIcon(w.viz)+'</div><span class="wtitle">'+esc(w.name)+'</span><span class="wetag">'+esc(em.label)+'</span><div class="wac"><button class="wab" title="Edit" onclick="editWidget('+w.id+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="wab" title="Remove" onclick="removeWidget('+w.id+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div></div><div class="wbody">'+getBody(w)+'</div><div class="rh" onmousedown="startResize(event,'+w.id+')"></div><div class="snap-badge"></div>';
       g.appendChild(c);
     });
-    var b=document.createElement('button'); b.className='add-btn'; b.onclick=openModal;
+    var b=document.createElement('button'); b.className='add-btn'; b.style.gridColumn='span 1'; b.onclick=function(){openModal();};
     b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add widget';
     g.appendChild(b);
   }
@@ -761,6 +772,54 @@ function renderWidgets(){
 function toast(msg){
   var t=document.getElementById('toast'); document.getElementById('toast-msg').textContent=msg;
   t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},2600);
+}
+
+// ── Resize drag ──
+var dragState=null;
+
+function startResize(e,wid){
+  e.preventDefault(); e.stopPropagation();
+  var grid=document.getElementById('wgrid');
+  var gr=grid.getBoundingClientRect();
+  dragState={id:wid,gl:gr.left,gw:gr.width};
+  var card=document.getElementById('w'+wid);
+  if(card) card.classList.add('dragging');
+  document.addEventListener('mousemove',onResize);
+  document.addEventListener('mouseup',endResize);
+}
+
+function snapCols(x,gw){
+  var pct=x/gw;
+  if(pct<0.45) return 1;
+  if(pct<0.8) return 2;
+  return 3;
+}
+
+function onResize(e){
+  if(!dragState) return;
+  var x=e.clientX-dragState.gl;
+  var n=snapCols(x,dragState.gw);
+  var card=document.getElementById('w'+dragState.id);
+  if(card){
+    card.classList.remove('w1','w2','w3');
+    card.classList.add('w'+n);
+    var sb=card.querySelector('.snap-badge');
+    if(sb) sb.textContent=n===1?'1/3 width':n===2?'2/3 width':'Full width';
+  }
+}
+
+function endResize(e){
+  if(!dragState) return;
+  var x=e.clientX-dragState.gl;
+  var n=snapCols(x,dragState.gw);
+  var w=widgets.find(function(x2){return x2.id===dragState.id;});
+  if(w) w.cols=n;
+  var card=document.getElementById('w'+dragState.id);
+  if(card) card.classList.remove('dragging');
+  document.removeEventListener('mousemove',onResize);
+  document.removeEventListener('mouseup',endResize);
+  dragState=null;
+  renderWidgets();
 }
 
 renderWidgets();
