@@ -79,6 +79,34 @@ body{font-family:var(--font);color:var(--n3);background:var(--wh);display:flex;h
 .wcard.dragging{outline:2px dashed var(--gp);outline-offset:-2px;opacity:.88}
 .snap-badge{position:absolute;bottom:8px;right:14px;background:var(--gp);color:white;font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;pointer-events:none;opacity:0;transition:opacity .1s;z-index:20}
 .wcard.dragging .snap-badge{opacity:1}
+/* ── inline header controls ── */
+.wh-inline{display:flex;align-items:center;gap:4px;margin:0 2px}
+.wh-btn{display:flex;align-items:center;gap:4px;padding:3px 8px;border:1px solid var(--br);border-radius:10px;background:var(--f8);font-size:11px;color:var(--n6);cursor:pointer;font-family:var(--font);white-space:nowrap;transition:all .15s;line-height:1.4}
+.wh-btn:hover{border-color:var(--gp);color:var(--gp);background:var(--gl)}
+.wh-btn.on{border-color:var(--gp);color:var(--gp);background:var(--gl)}
+.wh-btn svg{width:11px;height:11px;flex-shrink:0}
+/* ── floating popover ── */
+#wpop{position:fixed;background:var(--wh);border:1px solid var(--br);border-radius:8px;box-shadow:var(--sh2);z-index:600;display:none;min-width:170px;max-width:380px}
+#wpop.open{display:block}
+.wdrop{padding:4px 0}
+.wdrop-item{display:flex;align-items:center;gap:8px;padding:7px 14px;font-size:12px;color:var(--n3);cursor:pointer;transition:background .1s;white-space:nowrap}
+.wdrop-item:hover{background:var(--f4)}
+.wdrop-item.on{color:var(--gp);font-weight:500}
+.wdrop-check{width:11px;height:11px;flex-shrink:0;color:var(--gp)}
+.wfpop{padding:10px 12px;display:flex;flex-direction:column;gap:7px;min-width:340px}
+.wfpop-hd{font-size:10px;font-weight:700;color:var(--n9);text-transform:uppercase;letter-spacing:.5px;padding-bottom:6px;border-bottom:1px solid var(--br)}
+.wfrow{display:flex;align-items:center;gap:4px}
+.wfrow select{padding:4px 6px;border:1px solid var(--br);border-radius:5px;font-size:11px;font-family:var(--font);color:var(--n3);background:var(--wh);cursor:pointer}
+.wfrow select:focus{outline:none;border-color:var(--gp)}
+.wfrow input{padding:4px 7px;border:1px solid var(--br);border-radius:5px;font-size:11px;font-family:var(--font);color:var(--n3);width:90px}
+.wfrow input:focus{outline:none;border-color:var(--gp)}
+.wfrm{width:20px;height:20px;border:none;background:none;cursor:pointer;color:var(--bb);display:flex;align-items:center;justify-content:center;border-radius:3px;flex-shrink:0;font-size:15px;line-height:1;padding:0}
+.wfrm:hover{background:var(--f4);color:#e74c3c}
+.wpop-add{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--gp);cursor:pointer;background:none;border:none;font-family:var(--font);padding:3px 0;font-weight:500}
+.wpop-add:hover{color:var(--gd)}
+.wpop-empty{font-size:11px;color:var(--bb);font-style:italic}
+.flt-chips{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+.flt-chip{font-size:10px;padding:2px 8px;background:var(--gl);border:1px solid #b2e4d8;border-radius:10px;color:var(--gd)}
 .mlist{display:flex;flex-direction:column;gap:5px}
 .mrow{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--f8);border-radius:5px;min-width:0}
 .mdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
@@ -691,7 +719,7 @@ function saveWidget(){
     if(w){ w.entity=selE; w.viz=selV; w.name=name; w.xAxis=xAxis; w.yAxis=yAxis; w.groupBy=groupBy; w.em=em; w.vm=vm; }
     closeModal(); renderWidgets(); toast('Widget updated!');
   } else {
-    widgets.push({id:Date.now(),entity:selE,viz:selV,name:name,xAxis:xAxis,yAxis:yAxis,groupBy:groupBy,em:em,vm:vm,cols:2});
+    widgets.push({id:Date.now(),entity:selE,viz:selV,name:name,xAxis:xAxis,yAxis:yAxis,groupBy:groupBy,filters:[],em:em,vm:vm,cols:2});
     closeModal(); renderWidgets(); toast('Widget "'+name+'" added!');
   }
 }
@@ -760,7 +788,7 @@ function renderWidgets(){
     widgets.forEach(function(w){
       var em=w.em||EM[w.entity];
       var c=document.createElement('div'); c.className='wcard w'+(w.cols||2); c.id='w'+w.id;
-      c.innerHTML='<div class="whd"><div class="whd-icon">'+vizIcon(w.viz)+'</div><span class="wtitle">'+esc(w.name)+'</span><span class="wetag">'+esc(em.label)+'</span><div class="wac"><button class="wab" title="Edit" onclick="editWidget('+w.id+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="wab" title="Remove" onclick="removeWidget('+w.id+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div></div><div class="wbody">'+getBody(w)+'</div><div class="rh" onmousedown="startResize(event,'+w.id+')"></div><div class="snap-badge"></div>';
+      c.innerHTML='<div class="whd"><div class="whd-icon">'+vizIcon(w.viz)+'</div><span class="wtitle">'+esc(w.name)+'</span><span class="wetag">'+esc(em.label)+'</span>'+whInline(w)+'<div class="wac"><button class="wab" title="Edit" onclick="editWidget('+w.id+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="wab" title="Remove" onclick="removeWidget('+w.id+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div></div><div class="wbody">'+getBody(w)+'</div><div class="rh" onmousedown="startResize(event,'+w.id+')"></div><div class="snap-badge"></div>';
       g.appendChild(c);
     });
     var b=document.createElement('button'); b.className='add-btn'; b.style.gridColumn='span 1'; b.onclick=function(){openModal();};
@@ -822,8 +850,144 @@ function endResize(e){
   renderWidgets();
 }
 
+// ── Inline Group By / Filter ──
+var popState=null;
+
+function whInline(w){
+  var hasGb=w.groupBy&&w.groupBy!=='None';
+  var hasFlt=w.filters&&w.filters.length>0;
+  var gbLabel=hasGb?w.groupBy:'Group by';
+  var fltLabel=hasFlt?(w.filters.length+' filter'+(w.filters.length>1?'s':'')):'Filter';
+  return '<div class="wh-inline">'
+    +'<button class="wh-btn'+(hasGb?' on':'')+'" onclick="openGroupBy(event,'+w.id+')" title="Group by">'
+    +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 6h18M7 12h10M11 18h2"/></svg>'
+    +esc(gbLabel)+'</button>'
+    +'<button class="wh-btn'+(hasFlt?' on':'')+'" onclick="openFilterPop(event,'+w.id+')" title="Filter">'
+    +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>'
+    +esc(fltLabel)+'</button>'
+    +'</div>';
+}
+
+function openGroupBy(e,wid){
+  e.stopPropagation();
+  var w=widgets.find(function(x){return x.id===wid;});
+  if(!w) return;
+  var em=w.em||EM[w.entity];
+  var opts=['None'].concat(em.gf||[]);
+  var html='<div class="wdrop">'+opts.map(function(o){
+    var sel=(w.groupBy===o)||(!w.groupBy&&o==='None');
+    return '<div class="wdrop-item'+(sel?' on':'')+'" onclick="setGroupBy('+wid+',\''+o.replace(/'/g,"\\'")+'\')">'
+      +'<svg class="wdrop-check" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" style="opacity:'+(sel?1:0)+'"><polyline points="20 6 9 17 4 12"/></svg>'
+      +esc(o)+'</div>';
+  }).join('')+'</div>';
+  popState={wid:wid,type:'gb'};
+  showPop(html,e.currentTarget);
+}
+
+function setGroupBy(wid,val){
+  var w=widgets.find(function(x){return x.id===wid;});
+  if(w){w.groupBy=val; renderWidgets();}
+  closePop();
+}
+
+function openFilterPop(e,wid){
+  e.stopPropagation();
+  var w=widgets.find(function(x){return x.id===wid;});
+  if(!w) return;
+  if(!w.filters) w.filters=[];
+  popState={wid:wid,type:'flt'};
+  showPop(buildFilterHtml(w),e.currentTarget);
+}
+
+function buildFilterHtml(w){
+  var em=w.em||EM[w.entity];
+  var fields=em.ff||[];
+  var ops=['is','is not','contains','>','<'];
+  var rows=(w.filters||[]).map(function(f,i){
+    return '<div class="wfrow">'
+      +'<select onchange="updFilter('+w.id+','+i+',\'field\',this.value)">'
+      +fields.map(function(fn){return '<option'+(fn===f.field?' selected':'')+'>'+esc(fn)+'</option>';}).join('')
+      +'</select>'
+      +'<select onchange="updFilter('+w.id+','+i+',\'op\',this.value)">'
+      +ops.map(function(op){return '<option'+(op===f.op?' selected':'')+'>'+esc(op)+'</option>';}).join('')
+      +'</select>'
+      +'<input value="'+esc(f.val||'')+'" placeholder="Value..." oninput="updFilter('+w.id+','+i+',\'val\',this.value)"/>'
+      +'<button class="wfrm" onclick="rmFilter('+w.id+','+i+')">&#x2715;</button>'
+      +'</div>';
+  }).join('');
+  return '<div class="wfpop">'
+    +'<div class="wfpop-hd">Filters</div>'
+    +(rows||'<div class="wpop-empty">No filters yet</div>')
+    +'<button class="wpop-add" onclick="addInlineFlt('+w.id+')">'
+    +'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>'
+    +'Add filter</button></div>';
+}
+
+function addInlineFlt(wid){
+  var w=widgets.find(function(x){return x.id===wid;});
+  if(!w) return;
+  var em=w.em||EM[w.entity];
+  if(!w.filters) w.filters=[];
+  w.filters.push({field:(em.ff||[''])[0],op:'is',val:''});
+  var pop=document.getElementById('wpop');
+  pop.innerHTML=buildFilterHtml(w);
+}
+
+function rmFilter(wid,idx){
+  var w=widgets.find(function(x){return x.id===wid;});
+  if(!w||!w.filters) return;
+  w.filters.splice(idx,1);
+  var pop=document.getElementById('wpop');
+  pop.innerHTML=buildFilterHtml(w);
+}
+
+function updFilter(wid,idx,key,val){
+  var w=widgets.find(function(x){return x.id===wid;});
+  if(!w||!w.filters||!w.filters[idx]) return;
+  w.filters[idx][key]=val;
+}
+
+function showPop(html,btn){
+  var pop=document.getElementById('wpop');
+  pop.innerHTML=html;
+  pop.classList.add('open');
+  positionPop(btn);
+}
+
+function positionPop(btn){
+  var pop=document.getElementById('wpop');
+  if(!btn) return;
+  var r=btn.getBoundingClientRect();
+  var pw=pop.offsetWidth||220;
+  var ph=pop.offsetHeight||160;
+  var vw=window.innerWidth,vh=window.innerHeight;
+  var left=r.left;
+  var top=r.bottom+6;
+  if(left+pw>vw-8) left=vw-pw-8;
+  if(top+ph>vh-8) top=r.top-ph-6;
+  if(left<8) left=8;
+  pop.style.left=left+'px';
+  pop.style.top=top+'px';
+}
+
+function closePop(){
+  var pop=document.getElementById('wpop');
+  var wasFlt=popState&&popState.type==='flt';
+  pop.classList.remove('open');
+  popState=null;
+  if(wasFlt) renderWidgets();
+}
+
+document.addEventListener('mousedown',function(e){
+  var pop=document.getElementById('wpop');
+  if(pop&&pop.classList.contains('open')&&!pop.contains(e.target)){
+    closePop();
+  }
+});
+
 renderWidgets();
 switchTab('lp');
 </script>
+<div id="wpop"></div>
 </body>
 </html>
