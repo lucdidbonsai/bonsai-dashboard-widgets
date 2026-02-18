@@ -1,0 +1,770 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bonsai – Custom Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --gp:#00b289;--gd:#009975;--gl:#e6f7f2;--bg:#22AD01;
+  --f8:#f8f8f8;--f4:#f4f4f4;--ee:#eee;--dd:#ddd;--bb:#bbb;--n9:#999;--n6:#666;--n3:#333;
+  --wh:#fff;--br:#e8e8e8;
+  --sh1:0 1px 3px rgba(0,0,0,.08);--sh2:0 4px 16px rgba(0,0,0,.12);--sh3:0 8px 32px rgba(0,0,0,.18);
+  --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,Helvetica,Arial,sans-serif;
+  --r:8px
+}
+body{font-family:var(--font);color:var(--n3);background:var(--wh);display:flex;height:100vh;overflow:hidden;font-size:13px}
+.sb{width:210px;background:var(--f8);border-right:1px solid var(--br);display:flex;flex-direction:column;flex-shrink:0}
+.sb-hd{padding:13px 16px;display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--br);cursor:pointer}
+.sb-logo{width:24px;height:24px;background:var(--bg);border-radius:6px;display:flex;align-items:center;justify-content:center}
+.sb-logo svg{width:14px;height:14px;fill:white}
+.sb-org{font-weight:600;font-size:13px}
+.sb-search{margin:9px 12px;padding:6px 10px;background:var(--wh);border:1px solid var(--br);border-radius:6px;font-size:12px;color:var(--n9);display:flex;align-items:center;gap:6px;cursor:pointer}
+.sb-search kbd{margin-left:auto;font-size:10px;color:var(--bb);background:var(--f4);padding:1px 4px;border-radius:3px;font-family:var(--font)}
+.sb-nav{flex:1;overflow-y:auto;padding:4px 0}
+.sb-sec{font-size:10px;color:var(--bb);padding:10px 16px 3px;text-transform:uppercase;font-weight:700;letter-spacing:.6px}
+.ni{display:flex;align-items:center;gap:9px;padding:5px 16px;color:var(--n6);cursor:pointer;font-size:12.5px;transition:background .1s;white-space:nowrap}
+.ni:hover{background:var(--f4)}
+.ni.active{color:var(--n3);font-weight:500;background:var(--gl)}
+.ni svg{width:15px;height:15px;flex-shrink:0}
+.ni-pin{margin-left:auto;color:var(--dd)}
+.ni-pin svg{width:12px;height:12px}
+.nb{background:#e74c3c;color:white;font-size:10px;padding:1px 5px;border-radius:10px;margin-left:auto;font-weight:600}
+.beta{font-size:9px;background:#fff3cd;color:#856404;padding:1px 5px;border-radius:3px;font-weight:700;letter-spacing:.2px}
+.sb-ft{border-top:1px solid var(--br);padding:4px 0}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.top-hd{display:flex;align-items:center;justify-content:space-between;padding:12px 24px;border-bottom:1px solid var(--br)}
+.top-hd h1{font-size:15px;font-weight:600}
+.top-hd-ac{display:flex;align-items:center;gap:10px}
+.ib{width:30px;height:30px;border-radius:50%;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--n6)}
+.ib:hover{background:var(--f4)}
+.ib svg{width:18px;height:18px}
+.av{width:28px;height:28px;border-radius:50%;background:var(--gp);color:white;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;cursor:pointer}
+.content{flex:1;display:flex;flex-direction:column;overflow:hidden}
+.gr-area{padding:18px 24px 0}
+.gr-date{font-size:12px;color:var(--n9);margin-bottom:3px}
+.gr-name{font-size:22px;font-weight:700}
+.tabs{display:flex;align-items:center;padding:0 24px;border-bottom:1px solid var(--br);margin-top:12px}
+.tab{padding:9px 14px;font-size:13px;color:var(--n6);cursor:pointer;border-bottom:2px solid transparent;margin-bottom:-1px;white-space:nowrap;transition:color .15s}
+.tab:hover{color:var(--n3)}
+.tab.active{color:var(--n3);font-weight:500;border-bottom-color:var(--n3)}
+.tabs-ac{margin-left:auto;display:flex;align-items:center;gap:3px}
+.tib{width:28px;height:28px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--n9);border-radius:5px}
+.tib:hover{background:var(--f4);color:var(--n3)}
+.tib svg{width:15px;height:15px}
+.panel{flex:1;overflow-y:auto;padding:24px;display:none}
+.panel.active{display:block}
+.wgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(400px,1fr));gap:16px;align-items:start}
+.wcard{background:var(--wh);border:1px solid var(--br);border-radius:var(--r);overflow:hidden}
+.whd{display:flex;align-items:center;gap:8px;padding:11px 14px;border-bottom:1px solid var(--br)}
+.whd-icon{width:20px;height:20px;display:flex;align-items:center;justify-content:center;color:var(--gp)}
+.whd-icon svg{width:15px;height:15px}
+.wtitle{font-weight:600;font-size:13px;flex:1}
+.wetag{font-size:10px;color:var(--n9);background:var(--f4);padding:2px 7px;border-radius:4px;white-space:nowrap}
+.wac{display:flex;gap:2px;opacity:0;transition:opacity .15s}
+.wcard:hover .wac{opacity:1}
+.wab{width:24px;height:24px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--n9);border-radius:4px}
+.wab:hover{background:var(--f4);color:var(--n3)}
+.wab svg{width:13px;height:13px}
+.wbody{padding:14px}
+.mlist{display:flex;flex-direction:column;gap:5px}
+.mrow{display:flex;align-items:center;gap:8px;padding:7px 10px;background:var(--f8);border-radius:5px;min-width:0}
+.mdot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.mname{flex:1;font-size:12px;font-weight:500;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mbadge{font-size:10px;padding:2px 7px;border-radius:10px;font-weight:500;white-space:nowrap;flex-shrink:0}
+.bg{background:#e6f7f2;color:#00b289}
+.bb{background:#e8f4fd;color:#3498db}
+.bo{background:#fff4e6;color:#e67e22}
+.br2{background:#fde8e8;color:#e74c3c}
+.bgr{background:#f0f0f0;color:#999}
+.bpu{background:#f0e8ff;color:#9b59b6}
+.mval{font-size:12px;font-weight:600;color:var(--n6);white-space:nowrap;margin-left:4px}
+.mboard{display:flex;gap:7px;height:148px}
+.mcol{flex:1;background:var(--f8);border-radius:6px;padding:7px;display:flex;flex-direction:column;gap:4px;overflow:hidden;min-width:0}
+.mcol-hd{font-size:10px;font-weight:700;color:var(--n6);text-transform:uppercase;letter-spacing:.3px;margin-bottom:2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mcard{background:var(--wh);border:1px solid var(--br);border-radius:4px;padding:5px 7px;font-size:11px;color:var(--n3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.mbc{display:flex;flex-direction:column;gap:3px}
+.mbc-sub{font-size:10px;color:var(--n9);margin-bottom:4px}
+.mbars{display:flex;align-items:flex-end;gap:5px;height:104px;padding:0 2px}
+.mbc-col{flex:1;display:flex;flex-direction:column;align-items:center;gap:3px}
+.mbc-fill{width:100%;background:var(--gl);border-radius:3px 3px 0 0;border-bottom:2px solid var(--gp);transition:background .2s;min-height:4px}
+.mbc-fill:hover{background:#c0ece2}
+.mbc-lbl{font-size:9.5px;color:var(--n9);white-space:nowrap}
+.mbc-val{font-size:9px;color:var(--gp);font-weight:600}
+.mlc{width:100%;height:116px}
+.mlc-lbl{display:flex;justify-content:space-between;font-size:10px;color:var(--n9);padding:0 4px;margin-top:3px}
+.add-btn{border:2px dashed var(--dd);border-radius:var(--r);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;cursor:pointer;min-height:200px;color:var(--bb);transition:all .2s;background:transparent;width:100%;font-family:var(--font);font-size:13px}
+.add-btn:hover{border-color:var(--gp);color:var(--gp);background:var(--gl)}
+.add-btn svg{width:22px;height:22px}
+.empty{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;min-height:300px;color:var(--bb)}
+.empty svg{width:40px;height:40px}
+.empty p{font-size:14px}
+.ecta{display:flex;align-items:center;gap:6px;padding:8px 16px;background:var(--gp);color:white;border:none;border-radius:6px;cursor:pointer;font-size:13px;font-family:var(--font);font-weight:500}
+.ecta:hover{background:var(--gd)}
+.ecta svg{width:14px;height:14px}
+.ov{position:fixed;inset:0;background:rgba(0,0,0,.38);display:flex;align-items:center;justify-content:center;z-index:1000;opacity:0;pointer-events:none;transition:opacity .2s}
+.ov.open{opacity:1;pointer-events:all}
+.modal{background:var(--wh);border-radius:12px;width:580px;max-width:96vw;box-shadow:var(--sh3);display:flex;flex-direction:column;max-height:88vh;overflow:hidden;transform:scale(.96) translateY(8px);transition:transform .2s}
+.ov.open .modal{transform:scale(1) translateY(0)}
+.mhd{padding:18px 22px 14px;border-bottom:1px solid var(--br);display:flex;align-items:flex-start;gap:12px}
+.mhd-text{flex:1}
+.mhd-title{font-size:16px;font-weight:700}
+.mhd-sub{font-size:12px;color:var(--n9);margin-top:2px}
+.mhd-edit-badge{font-size:10px;background:var(--gl);color:var(--gp);padding:2px 8px;border-radius:10px;font-weight:600;margin-top:4px;display:inline-block}
+.mcls{width:28px;height:28px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--n9);border-radius:6px;flex-shrink:0;margin-top:-2px}
+.mcls:hover{background:var(--f4);color:var(--n3)}
+.mcls svg{width:16px;height:16px}
+.steps{display:flex;align-items:center;padding:12px 22px;border-bottom:1px solid var(--br)}
+.sp{display:flex;align-items:center;gap:7px}
+.sp-dot{width:22px;height:22px;border-radius:50%;border:2px solid var(--dd);display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:var(--bb);transition:all .2s;flex-shrink:0}
+.sp.active .sp-dot{border-color:var(--gp);background:var(--gp);color:white}
+.sp.done .sp-dot{border-color:var(--gp);background:var(--gl);color:var(--gp)}
+.sp-lbl{font-size:12px;color:var(--n9);font-weight:500}
+.sp.active .sp-lbl{color:var(--n3);font-weight:600}
+.sp.done .sp-lbl{color:var(--gp)}
+.sc{flex:1;height:1px;background:var(--ee);margin:0 8px}
+.sc.done{background:var(--gp);opacity:.4}
+.mbody{flex:1;overflow-y:auto;padding:18px 22px}
+.esecs{display:flex;flex-direction:column;gap:14px}
+.esec-lbl{font-size:10px;font-weight:700;color:var(--n9);text-transform:uppercase;letter-spacing:.6px;margin-bottom:7px}
+.egrid{display:grid;grid-template-columns:1fr 1fr;gap:7px}
+.ecard{border:2px solid var(--br);border-radius:7px;padding:10px 12px;cursor:pointer;display:flex;align-items:center;gap:10px;transition:all .15s}
+.ecard:hover{border-color:var(--gp);background:var(--gl)}
+.ecard.sel{border-color:var(--gp);background:var(--gl)}
+.eicon{width:32px;height:32px;border-radius:7px;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.eicon svg{width:15px;height:15px}
+.ename{font-weight:600;font-size:12.5px}
+.edesc{font-size:10.5px;color:var(--n9);margin-top:1px}
+.ic-crm{background:#fff4e6;color:#e67e22}
+.ic-prod{background:#e8f4fd;color:#3498db}
+.ic-fin{background:#e6f7f2;color:#00b289}
+.vgrid{display:grid;grid-template-columns:1fr 1fr;gap:9px}
+.vcard{border:2px solid var(--br);border-radius:7px;padding:12px 14px;cursor:pointer;display:flex;flex-direction:column;gap:9px;transition:all .15s}
+.vcard:hover{border-color:var(--gp);background:var(--gl)}
+.vcard.sel{border-color:var(--gp);background:var(--gl)}
+.vprev{height:60px;background:var(--f8);border-radius:6px;display:flex;align-items:flex-end;padding:8px;gap:4px;overflow:hidden}
+.vprev.lp{align-items:flex-start;flex-direction:column;gap:5px}
+.vprev.bp{gap:6px;align-items:stretch}
+.mb2{background:var(--gp);opacity:.45;border-radius:2px 2px 0 0;flex:1}
+.mb2.t{height:80%}.mb2.m{height:55%}.mb2.s{height:35%}.mb2.x{height:20%}
+.mlr{height:9px;background:var(--dd);border-radius:2px;width:90%}
+.mlr:nth-child(2){width:70%}.mlr:nth-child(3){width:80%}.mlr:nth-child(4){width:60%}
+.mbc2{flex:1;background:var(--ee);border-radius:4px}
+.vname{font-weight:600;font-size:13px}
+.vdesc{font-size:11px;color:var(--n9);margin-top:1px}
+.csec{margin-bottom:18px}
+.csec-ttl{font-size:11px;font-weight:700;color:var(--n6);text-transform:uppercase;letter-spacing:.5px;margin-bottom:9px}
+.crow{display:flex;gap:9px}
+.cfield{flex:1;display:flex;flex-direction:column;gap:4px}
+.clbl{font-size:12px;color:var(--n6);font-weight:500}
+.csel{width:100%;padding:7px 10px;border:1px solid var(--br);border-radius:6px;font-size:13px;font-family:var(--font);color:var(--n3);background:var(--wh);cursor:pointer;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23999' stroke-width='2'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 9px center;padding-right:26px}
+.csel:focus{outline:none;border-color:var(--gp)}
+.cinp{width:100%;padding:7px 10px;border:1px solid var(--br);border-radius:6px;font-size:13px;font-family:var(--font);color:var(--n3)}
+.cinp:focus{outline:none;border-color:var(--gp)}
+.flist{display:flex;flex-direction:column;gap:7px}
+.frow{display:flex;align-items:center;gap:7px}
+.frow .csel{flex:1}
+.frm{width:26px;height:26px;border:none;background:none;cursor:pointer;display:flex;align-items:center;justify-content:center;color:var(--bb);border-radius:4px;flex-shrink:0}
+.frm:hover{background:var(--f4);color:#e74c3c}
+.frm svg{width:13px;height:13px}
+.af-btn{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--gp);cursor:pointer;background:none;border:none;font-family:var(--font);padding:4px 0;font-weight:500}
+.af-btn:hover{color:var(--gd)}
+.af-btn svg{width:13px;height:13px}
+.wni{width:100%;padding:7px 10px;border:1px solid var(--br);border-radius:6px;font-size:13px;font-family:var(--font);color:var(--n3);margin-bottom:14px}
+.wni:focus{outline:none;border-color:var(--gp)}
+.axsec{display:none}
+.axsec.vis{display:block}
+.ssum{display:flex;align-items:center;gap:8px;padding:7px 11px;background:var(--f8);border:1px solid var(--br);border-radius:6px;margin-bottom:14px;font-size:12px;color:var(--n6)}
+.ssum strong{color:var(--n3)}
+.ssum .chg{margin-left:auto;color:var(--gp);cursor:pointer;font-weight:500}
+.ssum .chg:hover{color:var(--gd)}
+.mft{padding:13px 22px;border-top:1px solid var(--br);display:flex;align-items:center;justify-content:space-between}
+.btn{padding:7px 16px;border-radius:6px;font-size:13px;font-family:var(--font);font-weight:500;cursor:pointer;transition:all .15s;border:1px solid transparent}
+.btn-gh{background:none;border-color:var(--br);color:var(--n6)}
+.btn-gh:hover{background:var(--f4);color:var(--n3)}
+.btn-pr{background:var(--gp);color:white}
+.btn-pr:hover{background:var(--gd)}
+.btn-pr:disabled{background:var(--dd);cursor:not-allowed}
+.spanel{display:none}
+.spanel.active{display:block}
+.chk-list{display:flex;flex-direction:column}
+.chk-item{display:flex;align-items:center;gap:13px;padding:13px 0;border-bottom:1px solid var(--br)}
+.chk-item:last-child{border-bottom:none}
+.chk-c{width:21px;height:21px;border-radius:50%;border:2px solid var(--dd);display:flex;align-items:center;justify-content:center;flex-shrink:0;cursor:pointer}
+.chk-c.done{background:var(--gp);border-color:var(--gp)}
+.chk-c.done svg{display:block}
+.chk-c svg{display:none;width:11px;height:11px;stroke:white;fill:none;stroke-width:2.5}
+.chk-txt{flex:1}
+.chk-ttl{font-weight:500;font-size:13px}
+.chk-ttl.done{text-decoration:line-through;color:var(--n9)}
+.chk-sub{font-size:12px;color:var(--n9);margin-top:1px}
+.pg-lbl{display:flex;justify-content:space-between;font-size:12px;color:var(--n9);margin-bottom:5px}
+.pg-tr{height:6px;background:var(--ee);border-radius:3px;overflow:hidden;margin-bottom:4px}
+.pg-fi{height:100%;background:var(--gp);border-radius:3px;width:25%}
+.toast{position:fixed;bottom:24px;left:50%;transform:translateX(-50%) translateY(80px);background:var(--n3);color:white;padding:10px 18px;border-radius:8px;font-size:13px;font-weight:500;z-index:2000;transition:transform .3s ease;box-shadow:var(--sh2);display:flex;align-items:center;gap:8px}
+.toast.show{transform:translateX(-50%) translateY(0)}
+.toast svg{width:14px;height:14px;flex-shrink:0}
+</style>
+</head>
+<body>
+
+<!-- SIDEBAR -->
+<aside class="sb">
+  <div class="sb-hd">
+    <div class="sb-logo"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/></svg></div>
+    <span class="sb-org">Bonsai Dev</span>
+    <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="#bbb" stroke-width="2" style="margin-left:auto;flex-shrink:0"><path d="M6 9l6 6 6-6"/></svg>
+  </div>
+  <div class="sb-search">
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/></svg>
+    Search <kbd>&#x2318;K</kbd>
+  </div>
+  <nav class="sb-nav">
+    <div class="ni active"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>Home</div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/></svg>Notifications<span class="nb">2</span></div>
+    <div class="sb-sec">CRM</div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>Deals</div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>Agreements<span class="beta">BETA</span></div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>Estimates</div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>Proposals</div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/></svg>Contracts</div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg>Forms</div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>Scheduling<span class="ni-pin"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></span></div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg>Meetings<span class="ni-pin"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></span></div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>Client Portal<span class="ni-pin"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></span></div>
+    <div class="sb-sec">Productivity</div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>Projects</div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg>Tasks<span class="ni-pin"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/></svg></span></div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>Time Tracking</div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="3" y1="15" x2="21" y2="15"/><line x1="9" y1="3" x2="9" y2="21"/></svg>Timesheets</div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>Resourcing</div>
+    <div class="sb-sec">Finance</div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>Invoices</div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>Payments</div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>Income</div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg>Expenses</div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg>Bookkeeping</div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg>Services</div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>Rate Cards</div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="1"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg>Suppliers</div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>Purchase Orders</div>
+  </nav>
+  <div class="sb-ft">
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>Reports</div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>Automations</div>
+    <div class="ni"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 015.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Support</div>
+  </div>
+</aside>
+
+<!-- MAIN -->
+<main class="main">
+  <div class="top-hd">
+    <h1>Home</h1>
+    <div class="top-hd-ac">
+      <button class="ib"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></button>
+      <button class="ib"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg></button>
+      <div class="av">T</div>
+    </div>
+  </div>
+  <div class="content">
+    <div class="gr-area">
+      <p class="gr-date">Wednesday, February 18th</p>
+      <h2 class="gr-name">Good morning, yourname.</h2>
+    </div>
+    <div class="tabs">
+      <div class="tab active" id="tab-lp" onclick="switchTab('lp')">Launchpad</div>
+      <div class="tab" id="tab-mw" onclick="switchTab('mw')">My Work</div>
+      <div class="tab" id="tab-cv" onclick="switchTab('cv')">Custom View</div>
+      <div class="tabs-ac">
+        <button class="tib" onclick="openModal()" title="Add widget"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg></button>
+        <button class="tib" title="Manage views"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="21" y1="4" x2="14" y2="4"/><line x1="10" y1="4" x2="3" y2="4"/><line x1="21" y1="12" x2="12" y2="12"/><line x1="8" y1="12" x2="3" y2="12"/><line x1="21" y1="20" x2="16" y2="20"/><line x1="12" y1="20" x2="3" y2="20"/><line x1="14" y1="2" x2="14" y2="6"/><line x1="8" y1="10" x2="8" y2="14"/><line x1="16" y1="18" x2="16" y2="22"/></svg></button>
+      </div>
+    </div>
+    <!-- Launchpad -->
+    <div class="panel active" id="panel-lp">
+      <p style="font-weight:700;font-size:16px;margin-bottom:4px">Welcome! Let&#39;s get you set up.</p>
+      <p style="font-size:12px;color:var(--n9);margin-bottom:12px">Complete these steps to get the most out of your account.</p>
+      <div class="pg-lbl"><span>2 of 8 completed</span><span>25%</span></div>
+      <div class="pg-tr"><div class="pg-fi"></div></div>
+      <div class="chk-list">
+        <div class="chk-item"><div class="chk-c done"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="chk-txt"><div class="chk-ttl done">Add your first client</div><div class="chk-sub">Create a client profile to start managing your work</div></div></div>
+        <div class="chk-item"><div class="chk-c done"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="chk-txt"><div class="chk-ttl done">Create a project</div><div class="chk-sub">Set up your first project and start tracking progress</div></div></div>
+        <div class="chk-item"><div class="chk-c"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="chk-txt"><div class="chk-ttl">Send a proposal</div><div class="chk-sub">Create and send a professional proposal to a client</div></div></div>
+        <div class="chk-item"><div class="chk-c"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="chk-txt"><div class="chk-ttl">Set up payments</div><div class="chk-sub">Connect your bank account or payment processor</div></div></div>
+        <div class="chk-item"><div class="chk-c"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="chk-txt"><div class="chk-ttl">Track your first hour</div><div class="chk-sub">Use the time tracker to log billable hours</div></div></div>
+        <div class="chk-item"><div class="chk-c"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="chk-txt"><div class="chk-ttl">Create an invoice</div><div class="chk-sub">Generate and send your first invoice</div></div></div>
+        <div class="chk-item"><div class="chk-c"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="chk-txt"><div class="chk-ttl">Set up an automation</div><div class="chk-sub">Automate repetitive tasks to save time</div></div></div>
+        <div class="chk-item"><div class="chk-c"><svg viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"/></svg></div><div class="chk-txt"><div class="chk-ttl">Invite a team member</div><div class="chk-sub">Collaborate with your team on projects</div></div></div>
+      </div>
+    </div>
+    <!-- My Work -->
+    <div class="panel" id="panel-mw">
+      <div style="display:flex;flex-direction:column;gap:10px">
+        <p style="font-size:11px;font-weight:700;color:var(--n9);text-transform:uppercase;letter-spacing:.5px;margin-top:6px">Due today</p>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--f8);border-radius:7px;border:1px solid var(--br)"><div style="width:7px;height:7px;border-radius:50%;background:#e74c3c;flex-shrink:0"></div><span style="flex:1;font-size:13px">Finalize Q1 wireframes &#8211; Acme Corp</span><span style="font-size:11px;color:var(--n9)">Projects</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--f8);border-radius:7px;border:1px solid var(--br)"><div style="width:7px;height:7px;border-radius:50%;background:#f39c12;flex-shrink:0"></div><span style="flex:1;font-size:13px">Send INV-0024 to NovaBuild</span><span style="font-size:11px;color:var(--n9)">Invoices</span></div>
+        <p style="font-size:11px;font-weight:700;color:var(--n9);text-transform:uppercase;letter-spacing:.5px;margin-top:6px">This week</p>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--f8);border-radius:7px;border:1px solid var(--br)"><div style="width:7px;height:7px;border-radius:50%;background:#3498db;flex-shrink:0"></div><span style="flex:1;font-size:13px">Follow up on GlobalTech proposal</span><span style="font-size:11px;color:var(--n9)">Proposals</span></div>
+        <div style="display:flex;align-items:center;gap:10px;padding:10px 12px;background:var(--f8);border-radius:7px;border:1px solid var(--br)"><div style="width:7px;height:7px;border-radius:50%;background:var(--dd);flex-shrink:0"></div><span style="flex:1;font-size:13px">Log time for client strategy session</span><span style="font-size:11px;color:var(--n9)">Time Tracking</span></div>
+      </div>
+    </div>
+    <!-- Custom View -->
+    <div class="panel" id="panel-cv">
+      <div id="wgrid" class="wgrid"></div>
+    </div>
+  </div>
+</main>
+
+<!-- MODAL -->
+<div class="ov" id="ov" onclick="overlayClick(event)">
+  <div class="modal">
+    <div class="mhd">
+      <div class="mhd-text">
+        <div class="mhd-title" id="m-title">Add a widget</div>
+        <div class="mhd-sub" id="m-sub">Choose the data you want to display</div>
+        <div class="mhd-edit-badge" id="m-edit-badge" style="display:none">Editing widget</div>
+      </div>
+      <button class="mcls" onclick="closeModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>
+    </div>
+    <div class="steps">
+      <div class="sp active" id="pip1"><div class="sp-dot">1</div><div class="sp-lbl">Data source</div></div>
+      <div class="sc" id="sc12"></div>
+      <div class="sp" id="pip2"><div class="sp-dot">2</div><div class="sp-lbl">Visualization</div></div>
+      <div class="sc" id="sc23"></div>
+      <div class="sp" id="pip3"><div class="sp-dot">3</div><div class="sp-lbl">Configure</div></div>
+    </div>
+    <div class="mbody">
+
+      <!-- STEP 1 -->
+      <div class="spanel active" id="s1">
+        <p style="font-size:13px;color:var(--n6);margin-bottom:14px">Select the data this widget should show.</p>
+        <div class="esecs">
+          <div>
+            <div class="esec-lbl">CRM</div>
+            <div class="egrid">
+              <div class="ecard" data-e="deals" onclick="pickEntity('deals',this)"><div class="eicon ic-crm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/></svg></div><div><div class="ename">Deals</div><div class="edesc">Pipeline &amp; revenue</div></div></div>
+              <div class="ecard" data-e="agreements" onclick="pickEntity('agreements',this)"><div class="eicon ic-crm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></div><div><div class="ename">Agreements <span class="beta">BETA</span></div><div class="edesc">Signed &amp; pending</div></div></div>
+              <div class="ecard" data-e="estimates" onclick="pickEntity('estimates',this)"><div class="eicon ic-crm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div><div><div class="ename">Estimates</div><div class="edesc">Quotes &amp; approvals</div></div></div>
+              <div class="ecard" data-e="proposals" onclick="pickEntity('proposals',this)"><div class="eicon ic-crm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg></div><div><div class="ename">Proposals</div><div class="edesc">Sent &amp; conversion</div></div></div>
+              <div class="ecard" data-e="contracts" onclick="pickEntity('contracts',this)"><div class="eicon ic-crm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div><div class="ename">Contracts</div><div class="edesc">Active &amp; expiring</div></div></div>
+              <div class="ecard" data-e="forms" onclick="pickEntity('forms',this)"><div class="eicon ic-crm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="5" width="20" height="14" rx="2"/><line x1="2" y1="10" x2="22" y2="10"/></svg></div><div><div class="ename">Forms</div><div class="edesc">Responses &amp; intakes</div></div></div>
+              <div class="ecard" data-e="scheduling" onclick="pickEntity('scheduling',this)"><div class="eicon ic-crm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></div><div><div class="ename">Scheduling</div><div class="edesc">Appointments &amp; slots</div></div></div>
+              <div class="ecard" data-e="meetings" onclick="pickEntity('meetings',this)"><div class="eicon ic-crm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="23 7 16 12 23 17 23 7"/><rect x="1" y="5" width="15" height="14" rx="2"/></svg></div><div><div class="ename">Meetings</div><div class="edesc">Calls &amp; recordings</div></div></div>
+              <div class="ecard" data-e="clientportal" onclick="pickEntity('clientportal',this)"><div class="eicon ic-crm"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg></div><div><div class="ename">Client Portal</div><div class="edesc">Activity &amp; files</div></div></div>
+            </div>
+          </div>
+          <div>
+            <div class="esec-lbl">Productivity</div>
+            <div class="egrid">
+              <div class="ecard" data-e="projects" onclick="pickEntity('projects',this)"><div class="eicon ic-prod"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg></div><div><div class="ename">Projects</div><div class="edesc">Progress &amp; milestones</div></div></div>
+              <div class="ecard" data-e="tasks" onclick="pickEntity('tasks',this)"><div class="eicon ic-prod"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 11 12 14 22 4"/><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11"/></svg></div><div><div class="ename">Tasks</div><div class="edesc">To-dos &amp; priorities</div></div></div>
+              <div class="ecard" data-e="time" onclick="pickEntity('time',this)"><div class="eicon ic-prod"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div><div><div class="ename">Time Tracking</div><div class="edesc">Logged &amp; billable hours</div></div></div>
+              <div class="ecard" data-e="timesheets" onclick="pickEntity('timesheets',this)"><div class="eicon ic-prod"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><line x1="3" y1="9" x2="21" y2="9"/><line x1="9" y1="3" x2="9" y2="21"/></svg></div><div><div class="ename">Timesheets</div><div class="edesc">Weekly team hours</div></div></div>
+              <div class="ecard" data-e="resourcing" onclick="pickEntity('resourcing',this)"><div class="eicon ic-prod"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/></svg></div><div><div class="ename">Resourcing</div><div class="edesc">Capacity &amp; allocation</div></div></div>
+            </div>
+          </div>
+          <div>
+            <div class="esec-lbl">Finance</div>
+            <div class="egrid">
+              <div class="ecard" data-e="invoices" onclick="pickEntity('invoices',this)"><div class="eicon ic-fin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div><div><div class="ename">Invoices</div><div class="edesc">Paid &amp; outstanding</div></div></div>
+              <div class="ecard" data-e="payments" onclick="pickEntity('payments',this)"><div class="eicon ic-fin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg></div><div><div class="ename">Payments</div><div class="edesc">Received &amp; pending</div></div></div>
+              <div class="ecard" data-e="income" onclick="pickEntity('income',this)"><div class="eicon ic-fin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg></div><div><div class="ename">Income</div><div class="edesc">Revenue streams</div></div></div>
+              <div class="ecard" data-e="expenses" onclick="pickEntity('expenses',this)"><div class="eicon ic-fin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 18 13.5 8.5 8.5 13.5 1 6"/><polyline points="17 18 23 18 23 12"/></svg></div><div><div class="ename">Expenses</div><div class="edesc">Costs &amp; outgoings</div></div></div>
+              <div class="ecard" data-e="bookkeeping" onclick="pickEntity('bookkeeping',this)"><div class="eicon ic-fin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 19.5A2.5 2.5 0 016.5 17H20"/><path d="M6.5 2H20v20H6.5A2.5 2.5 0 014 19.5v-15A2.5 2.5 0 016.5 2z"/></svg></div><div><div class="ename">Bookkeeping</div><div class="edesc">Reconciliation</div></div></div>
+              <div class="ecard" data-e="services" onclick="pickEntity('services',this)"><div class="eicon ic-fin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 7V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v2"/></svg></div><div><div class="ename">Services</div><div class="edesc">Offerings &amp; rates</div></div></div>
+              <div class="ecard" data-e="ratecards" onclick="pickEntity('ratecards',this)"><div class="eicon ic-fin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg></div><div><div class="ename">Rate Cards</div><div class="edesc">Pricing &amp; tiers</div></div></div>
+              <div class="ecard" data-e="suppliers" onclick="pickEntity('suppliers',this)"><div class="eicon ic-fin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="3" width="15" height="13" rx="1"/><polygon points="16 8 20 8 23 11 23 16 16 16 16 8"/><circle cx="5.5" cy="18.5" r="2.5"/><circle cx="18.5" cy="18.5" r="2.5"/></svg></div><div><div class="ename">Suppliers</div><div class="edesc">Vendors &amp; contacts</div></div></div>
+              <div class="ecard" data-e="purchaseorders" onclick="pickEntity('purchaseorders',this)"><div class="eicon ic-fin"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg></div><div><div class="ename">Purchase Orders</div><div class="edesc">POs &amp; approvals</div></div></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 2 -->
+      <div class="spanel" id="s2">
+        <div class="ssum"><span>Data:</span><strong id="e-sum-lbl">&#8212;</strong><span class="chg" onclick="goStep(1)">Change</span></div>
+        <p style="font-size:13px;color:var(--n6);margin-bottom:14px">How should this data be displayed?</p>
+        <div class="vgrid">
+          <div class="vcard" data-v="list" onclick="pickViz('list',this)">
+            <div class="vprev lp"><div class="mlr"></div><div class="mlr"></div><div class="mlr"></div><div class="mlr"></div></div>
+            <div><div class="vname">List</div><div class="vdesc">Rows with sorting &amp; columns</div></div>
+          </div>
+          <div class="vcard" data-v="board" onclick="pickViz('board',this)">
+            <div class="vprev bp"><div class="mbc2"></div><div class="mbc2"></div><div class="mbc2"></div></div>
+            <div><div class="vname">Board</div><div class="vdesc">Kanban columns by status</div></div>
+          </div>
+          <div class="vcard" data-v="bar" onclick="pickViz('bar',this)">
+            <div class="vprev" style="gap:4px;align-items:flex-end;padding:10px 8px 7px"><div class="mb2 x"></div><div class="mb2 s"></div><div class="mb2 t"></div><div class="mb2 m"></div><div class="mb2 s"></div><div class="mb2 m"></div></div>
+            <div><div class="vname">Bar Chart</div><div class="vdesc">Compare values across categories</div></div>
+          </div>
+          <div class="vcard" data-v="line" onclick="pickViz('line',this)">
+            <div class="vprev" style="padding:7px;position:relative"><svg viewBox="0 0 200 50" style="width:100%;height:100%;overflow:visible"><polyline points="0,44 33,28 66,34 100,12 133,20 166,8 200,16" fill="none" stroke="#00b289" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity=".6"/><polyline points="0,44 33,28 66,34 100,12 133,20 166,8 200,16 200,50 0,50" fill="#00b289" stroke="none" opacity=".08"/></svg></div>
+            <div><div class="vname">Line Chart</div><div class="vdesc">Trends &amp; changes over time</div></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- STEP 3 -->
+      <div class="spanel" id="s3">
+        <div class="ssum"><span id="cfg-sum">Deals &#183; Bar Chart</span><span class="chg" onclick="goStep(2)">Change</span></div>
+        <div class="csec">
+          <div class="csec-ttl">Widget name</div>
+          <input class="wni" id="wname" type="text" placeholder="e.g. Deal Revenue by Month"/>
+        </div>
+        <div class="axsec" id="axsec">
+          <div class="csec-ttl" style="margin-bottom:9px">Chart axes</div>
+          <div class="crow" style="margin-bottom:16px">
+            <div class="cfield"><label class="clbl">X Axis</label><select class="csel" id="xsel"></select></div>
+            <div class="cfield"><label class="clbl">Y Axis</label><select class="csel" id="ysel"></select></div>
+          </div>
+        </div>
+        <div class="csec">
+          <div class="csec-ttl">Group by</div>
+          <select class="csel" id="gbsel" style="max-width:250px"></select>
+        </div>
+        <div class="csec">
+          <div class="csec-ttl">Filters</div>
+          <div class="flist" id="flist"></div>
+          <button class="af-btn" onclick="addFilter()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add filter</button>
+        </div>
+      </div>
+
+    </div>
+    <div class="mft">
+      <div><button class="btn btn-gh" id="btn-back" onclick="goBack()" style="display:none">Back</button></div>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-gh" onclick="closeModal()">Cancel</button>
+        <button class="btn btn-pr" id="btn-next" onclick="goNext()" disabled>Continue</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg><span id="toast-msg">Widget added</span></div>
+
+<script>
+var step=1, selE=null, selV=null, editId=null, widgets=[];
+
+var EM={
+  deals:{label:'Deals',section:'CRM',xf:['Month','Quarter','Stage','Owner','Source'],yf:['Deal Value ($)','Deal Count','Win Rate %'],gf:['Stage','Owner','Source','Month'],ff:['Stage','Owner','Amount','Close Date'],
+    rows:[{n:'GlobalTech SaaS Renewal',v:'$24,000',s:'Negotiation',c:'#f39c12'},{n:'Acme Corp Website Redesign',v:'$8,500',s:'Proposal Sent',c:'#3498db'},{n:'NovaBuild Consulting',v:'$15,200',s:'Qualified',c:'#9b59b6'},{n:'Sunrise Media Retainer',v:'$4,000/mo',s:'Closed Won',c:'#00b289'}],
+    board:{cols:[{h:'Lead',items:['DataStream Inc.','BlueWave Agency']},{h:'Proposal',items:['Acme Corp','TechStart']},{h:'Negotiate',items:['GlobalTech']},{h:'Won',items:['Sunrise Media']}]},
+    chart:{lbls:['Sep','Oct','Nov','Dec','Jan','Feb'],vals:[18000,24000,31000,22000,38000,51000]}},
+  agreements:{label:'Agreements',section:'CRM',xf:['Month','Client','Status'],yf:['Agreement Value','Count'],gf:['Status','Client','Month'],ff:['Status','Client','Expiry'],
+    rows:[{n:'Acme Corp – Service Agreement',v:'$12,000/yr',s:'Active',c:'#00b289'},{n:'NovaBuild – NDA',v:'—',s:'Signed',c:'#3498db'},{n:'GlobalTech – MSA',v:'$85,000',s:'Under Review',c:'#f39c12'},{n:'Sunrise Media – Retainer',v:'$4,000/mo',s:'Expiring Soon',c:'#e74c3c'}],
+    board:{cols:[{h:'Draft',items:['GlobalTech MSA']},{h:'Sent',items:['TechStart SLA']},{h:'Active',items:['Acme Corp','Sunrise']},{h:'Expired',items:['OldClient']}]},
+    chart:{lbls:['Sep','Oct','Nov','Dec','Jan','Feb'],vals:[3,4,2,5,3,6]}},
+  estimates:{label:'Estimates',section:'CRM',xf:['Month','Client','Status'],yf:['Estimate Value ($)','Count'],gf:['Status','Client','Month'],ff:['Status','Client','Amount'],
+    rows:[{n:'Website Redesign – Acme Corp',v:'$8,500',s:'Approved',c:'#00b289'},{n:'Brand Identity Package',v:'$4,200',s:'Sent',c:'#3498db'},{n:'E-commerce Migration',v:'$18,000',s:'Draft',c:'#999'},{n:'SEO Audit & Setup',v:'$2,800',s:'Sent',c:'#3498db'}],
+    board:{cols:[{h:'Draft',items:['E-commerce Mig.']},{h:'Sent',items:['Brand Identity','SEO Audit']},{h:'Approved',items:['Acme Redesign']},{h:'Declined',items:[]}]},
+    chart:{lbls:['Sep','Oct','Nov','Dec','Jan','Feb'],vals:[4200,8500,12000,6500,9200,11500]}},
+  proposals:{label:'Proposals',section:'CRM',xf:['Month','Client','Status'],yf:['Proposal Value ($)','Count','Conversion %'],gf:['Status','Client','Month'],ff:['Status','Client','Value'],
+    rows:[{n:'Q1 Marketing Campaign',v:'$14,500',s:'Under Review',c:'#f39c12'},{n:'App Dev – NovaBuild',v:'$32,000',s:'Accepted',c:'#00b289'},{n:'Consulting Retainer – GlobalTech',v:'$6,000/mo',s:'Accepted',c:'#00b289'},{n:'Photography & Branding',v:'$3,800',s:'Declined',c:'#e74c3c'}],
+    board:{cols:[{h:'Draft',items:['New Pitch']},{h:'Sent',items:['Q1 Campaign']},{h:'Accepted',items:['NovaBuild App','GlobalTech']},{h:'Declined',items:['Photography']}]},
+    chart:{lbls:['Sep','Oct','Nov','Dec','Jan','Feb'],vals:[5,8,6,9,7,11]}},
+  contracts:{label:'Contracts',section:'CRM',xf:['Month','Client','Status'],yf:['Contract Value ($)','Count'],gf:['Status','Client','Month'],ff:['Status','Client','End Date'],
+    rows:[{n:'Acme Corp – Dev Contract',v:'$28,000',s:'Active',c:'#00b289'},{n:'NovaBuild – Design Services',v:'$15,000',s:'Active',c:'#00b289'},{n:'TechStart – Support Agmt',v:'$2,000/mo',s:'Expiring Soon',c:'#f39c12'},{n:'GlobalTech – Consulting',v:'$85,000',s:'Draft',c:'#999'}],
+    board:{cols:[{h:'Draft',items:['GlobalTech']},{h:'Active',items:['Acme Corp','NovaBuild']},{h:'Expiring',items:['TechStart']},{h:'Ended',items:[]}]},
+    chart:{lbls:['Sep','Oct','Nov','Dec','Jan','Feb'],vals:[8,10,9,12,11,14]}},
+  forms:{label:'Forms',section:'CRM',xf:['Month','Form Name','Status'],yf:['Responses','Completion Rate %'],gf:['Status','Month'],ff:['Status','Responses'],
+    rows:[{n:'New Client Intake',v:'24 responses',s:'Active',c:'#00b289'},{n:'Project Brief Questionnaire',v:'11 responses',s:'Active',c:'#00b289'},{n:'Website Feedback Survey',v:'37 responses',s:'Closed',c:'#999'},{n:'Team Onboarding Checklist',v:'4 responses',s:'Active',c:'#00b289'}],
+    board:{cols:[{h:'Active',items:['Client Intake','Project Brief','Onboarding']},{h:'Closed',items:['Feedback Survey']},{h:'Draft',items:['Exit Survey']}]},
+    chart:{lbls:['Sep','Oct','Nov','Dec','Jan','Feb'],vals:[12,18,9,24,31,37]}},
+  scheduling:{label:'Scheduling',section:'CRM',xf:['Day','Week','Month','Client'],yf:['Appointments','Hours Booked'],gf:['Client','Type','Month'],ff:['Client','Type','Date'],
+    rows:[{n:'Discovery Call – TechStart',v:'30 min',s:'Feb 20, 2pm',c:'#3498db'},{n:'Strategy Review – Acme Corp',v:'60 min',s:'Feb 21, 10am',c:'#9b59b6'},{n:'Kickoff – NovaBuild',v:'90 min',s:'Feb 24, 3pm',c:'#f39c12'},{n:'Check-in – GlobalTech',v:'30 min',s:'Feb 25, 11am',c:'#3498db'}],
+    board:{cols:[{h:'Today',items:['Discovery Call']},{h:'This Week',items:['Strategy Review','NovaBuild Kickoff']},{h:'Next Week',items:['GlobalTech Check-in','Acme Review']}]},
+    chart:{lbls:['Sep','Oct','Nov','Dec','Jan','Feb'],vals:[14,18,12,16,20,22]}},
+  meetings:{label:'Meetings',section:'CRM',xf:['Day','Week','Month','Client'],yf:['Meeting Count','Hours'],gf:['Client','Status','Month'],ff:['Client','Status','Duration'],
+    rows:[{n:'Q1 Planning – Acme Corp',v:'60 min',s:'Completed',c:'#00b289'},{n:'Design Review – NovaBuild',v:'45 min',s:'Completed',c:'#00b289'},{n:'Budget Discussion – GlobalTech',v:'30 min',s:'Upcoming',c:'#3498db'},{n:'Intro Call – Sunrise Media',v:'30 min',s:'Upcoming',c:'#3498db'}],
+    board:{cols:[{h:'Upcoming',items:['GlobalTech','Sunrise Media']},{h:'Completed',items:['Acme Q1','NovaBuild Review']},{h:'Cancelled',items:[]}]},
+    chart:{lbls:['Sep','Oct','Nov','Dec','Jan','Feb'],vals:[8,11,9,13,10,15]}},
+  clientportal:{label:'Client Portal',section:'CRM',xf:['Month','Client','Status'],yf:['Active Portals','File Views','Comments'],gf:['Client','Status','Month'],ff:['Client','Status','Last Active'],
+    rows:[{n:'Acme Corp Portal',v:'3 active files',s:'Viewed 2h ago',c:'#00b289'},{n:'NovaBuild Portal',v:'7 active files',s:'Viewed yesterday',c:'#3498db'},{n:'GlobalTech Portal',v:'1 active file',s:'Viewed 3d ago',c:'#f39c12'},{n:'TechStart Portal',v:'—',s:'Invite pending',c:'#999'}],
+    board:{cols:[{h:'Active',items:['Acme Corp','NovaBuild']},{h:'Inactive',items:['GlobalTech']},{h:'Pending',items:['TechStart']}]},
+    chart:{lbls:['Sep','Oct','Nov','Dec','Jan','Feb'],vals:[2,3,3,4,5,6]}},
+  projects:{label:'Projects',section:'Productivity',xf:['Month','Project','Client','Status'],yf:['Hours Logged','Budget Used ($)','Task Count'],gf:['Status','Client','Month'],ff:['Status','Client','Due Date'],
+    rows:[{n:'Acme Corp Website Redesign',v:'68% done',s:'In Progress',c:'#3498db'},{n:'NovaBuild Mobile App',v:'32% done',s:'In Progress',c:'#3498db'},{n:'GlobalTech Brand Kit',v:'100%',s:'Completed',c:'#00b289'},{n:'Sunrise Social Campaign',v:'15% done',s:'At Risk',c:'#e74c3c'}],
+    board:{cols:[{h:'Planning',items:['Sunrise Social','TechStart API']},{h:'In Progress',items:['Acme Redesign','NovaBuild App']},{h:'Review',items:['SEO Audit']},{h:'Done',items:['Brand Kit']}]},
+    chart:{lbls:['Sep','Oct','Nov','Dec','Jan','Feb'],vals:[3,4,2,5,4,3]}},
+  tasks:{label:'Tasks',section:'Productivity',xf:['Day','Week','Month','Project'],yf:['Task Count','Completed','Overdue'],gf:['Priority','Project','Status'],ff:['Priority','Status','Due Date','Project'],
+    rows:[{n:'Finalize Q1 wireframes',v:'Due Feb 20',s:'High',c:'#e74c3c'},{n:'Set up dev environment',v:'Due Feb 22',s:'Medium',c:'#f39c12'},{n:'Write homepage content',v:'Due Feb 25',s:'Low',c:'#3498db'},{n:'Review brand guidelines',v:'Due Mar 1',s:'Medium',c:'#f39c12'}],
+    board:{cols:[{h:'To Do',items:['Homepage content','Brand review']},{h:'In Progress',items:['Wireframes','Dev setup']},{h:'Done',items:['Client brief','Kickoff call']}]},
+    chart:{lbls:['Sep','Oct','Nov','Dec','Jan','Feb'],vals:[22,31,18,27,35,29]}},
+  time:{label:'Time Tracking',section:'Productivity',xf:['Day','Week','Month','Client','Project'],yf:['Hours Logged','Billable Hours','Revenue ($)'],gf:['Client','Project','Member','Month'],ff:['Client','Project','Member','Date','Billable'],
+    rows:[{n:'Acme Corp – UI Design',v:'4.5h',s:'Billable',c:'#00b289'},{n:'NovaBuild – Development',v:'6.0h',s:'Billable',c:'#00b289'},{n:'Internal – Admin',v:'1.5h',s:'Non-billable',c:'#999'},{n:'GlobalTech – Strategy',v:'2.0h',s:'Billable',c:'#00b289'}],
+    board:{cols:[{h:'Today',items:['Acme Design 4.5h','GlobalTech 2h']},{h:'Yesterday',items:['NovaBuild 6h','Admin 1.5h']},{h:'This Week',items:['TechStart 3h']}]},
+    chart:{lbls:['Sep','Oct','Nov','Dec','Jan','Feb'],vals:[142,168,131,155,172,148]}},
+  timesheets:{label:'Timesheets',section:'Productivity',xf:['Week','Month','Member'],yf:['Total Hours','Billable Hours','Overtime'],gf:['Member','Status','Month'],ff:['Member','Status','Week'],
+    rows:[{n:'Sarah K. – Week of Feb 10',v:'38h',s:'Submitted',c:'#3498db'},{n:'Tom B. – Week of Feb 10',v:'41h',s:'Approved',c:'#00b289'},{n:'Mike R. – Week of Feb 10',v:'35h',s:'Draft',c:'#999'},{n:'Sarah K. – Week of Feb 3',v:'40h',s:'Approved',c:'#00b289'}],
+    board:{cols:[{h:'Draft',items:['Mike R.']},{h:'Submitted',items:['Sarah K. (W2)']},{h:'Approved',items:['Tom B.','Sarah K. (W1)']}]},
+    chart:{lbls:['Sep','Oct','Nov','Dec','Jan','Feb'],vals:[380,420,395,410,440,398]}},
+  resourcing:{label:'Resourcing',section:'Productivity',xf:['Member','Month','Project'],yf:['Allocation %','Available Hours','Booked Hours'],gf:['Member','Month','Project'],ff:['Member','Allocation','Available'],
+    rows:[{n:'Sarah K.',v:'85% allocated',s:'3h/wk free',c:'#f39c12'},{n:'Tom B.',v:'100% allocated',s:'Fully booked',c:'#e74c3c'},{n:'Mike R.',v:'60% allocated',s:'16h/wk free',c:'#00b289'},{n:'Lisa T.',v:'45% allocated',s:'22h/wk free',c:'#00b289'}],
+    board:{cols:[{h:'Available',items:['Mike R.','Lisa T.']},{h:'Partial',items:['Sarah K.']},{h:'Full',items:['Tom B.']}]},
+    chart:{lbls:['Sarah K.','Tom B.','Mike R.','Lisa T.'],vals:[85,100,60,45]}},
+  invoices:{label:'Invoices',section:'Finance',xf:['Month','Client','Status'],yf:['Invoice Amount ($)','Paid Amount','Outstanding'],gf:['Status','Client','Month'],ff:['Status','Client','Amount','Due Date'],
+    rows:[{n:'INV-0023 – Acme Corp',v:'$4,200',s:'Paid',c:'#00b289'},{n:'INV-0024 – NovaBuild',v:'$8,500',s:'Sent',c:'#3498db'},{n:'INV-0025 – GlobalTech',v:'$12,000',s:'Overdue',c:'#e74c3c'},{n:'INV-0026 – TechStart',v:'$2,800',s:'Draft',c:'#999'}],
+    board:{cols:[{h:'Draft',items:['INV-0026']},{h:'Sent',items:['INV-0024']},{h:'Overdue',items:['INV-0025']},{h:'Paid',items:['INV-0023','INV-0021']}]},
+    chart:{lbls:['Sep','Oct','Nov','Dec','Jan','Feb'],vals:[18200,24500,19800,31000,27400,35100]}},
+  payments:{label:'Payments',section:'Finance',xf:['Month','Client','Status'],yf:['Amount Received ($)','Count'],gf:['Client','Status','Month'],ff:['Client','Status','Amount','Date'],
+    rows:[{n:'Acme Corp – INV-0023',v:'$4,200',s:'Received',c:'#00b289'},{n:'NovaBuild – Deposit',v:'$2,500',s:'Received',c:'#00b289'},{n:'GlobalTech – Milestone 1',v:'$6,000',s:'Pending',c:'#f39c12'},{n:'Sunrise Media – Retainer',v:'$4,000',s:'Received',c:'#00b289'}],
+    board:{cols:[{h:'Pending',items:['GlobalTech M1']},{h:'Processing',items:['TechStart']},{h:'Received',items:['Acme Corp','NovaBuild','Sunrise']}]},
+    chart:{lbls:['Sep','Oct','Nov','Dec','Jan','Feb'],vals:[14200,19800,22100,18500,24300,28700]}},
+  income:{label:'Income',section:'Finance',xf:['Month','Type','Client'],yf:['Revenue ($)','Invoice Count'],gf:['Type','Client','Month'],ff:['Type','Client','Month'],
+    rows:[{n:'Design Services – Feb',v:'$12,400',s:'Recorded',c:'#00b289'},{n:'Development – Feb',v:'$18,200',s:'Recorded',c:'#00b289'},{n:'Consulting – Feb',v:'$6,000',s:'Projected',c:'#3498db'},{n:'Retainers – Feb',v:'$8,000',s:'Recorded',c:'#00b289'}],
+    board:{cols:[{h:'Projected',items:['Consulting Feb']},{h:'Invoiced',items:['Acme Retainer']},{h:'Received',items:['Design','Development','Retainers']}]},
+    chart:{lbls:['Sep','Oct','Nov','Dec','Jan','Feb'],vals:[32000,41000,38000,52000,44000,58000]}},
+  expenses:{label:'Expenses',section:'Finance',xf:['Month','Category','Vendor'],yf:['Amount ($)','Count'],gf:['Category','Vendor','Month'],ff:['Category','Amount','Vendor','Date'],
+    rows:[{n:'Adobe Creative Cloud',v:'$89.99',s:'Recurring',c:'#9b59b6'},{n:'AWS Hosting – Feb',v:'$234.50',s:'Paid',c:'#00b289'},{n:'Contractor – Mike R.',v:'$3,200',s:'Paid',c:'#00b289'},{n:'Office Supplies',v:'$142.80',s:'Pending',c:'#f39c12'}],
+    board:{cols:[{h:'Pending',items:['Office Supplies']},{h:'Approved',items:['AWS','Contractor']},{h:'Recurring',items:['Adobe CC','Slack','GitHub']}]},
+    chart:{lbls:['Sep','Oct','Nov','Dec','Jan','Feb'],vals:[4200,5100,3800,6200,4700,5400]}},
+  bookkeeping:{label:'Bookkeeping',section:'Finance',xf:['Month','Account','Type'],yf:['Net Amount ($)','Transactions'],gf:['Month','Account','Status'],ff:['Month','Status','Account'],
+    rows:[{n:'Feb 2025 – Reconciled',v:'+$38,400',s:'Balanced',c:'#00b289'},{n:'Jan 2025 – Reconciled',v:'+$29,100',s:'Balanced',c:'#00b289'},{n:'Dec 2024 – Reconciled',v:'+$43,200',s:'Balanced',c:'#00b289'},{n:'Nov 2024 – Under Review',v:'+$31,800',s:'In Review',c:'#f39c12'}],
+    board:{cols:[{h:'In Review',items:['Nov 2024']},{h:'Reconciled',items:['Dec 2024','Jan 2025','Feb 2025']}]},
+    chart:{lbls:['Sep','Oct','Nov','Dec','Jan','Feb'],vals:[28000,34000,31800,43200,29100,38400]}},
+  services:{label:'Services',section:'Finance',xf:['Service','Month','Client'],yf:['Revenue ($)','Hours Sold','Client Count'],gf:['Service','Client','Month'],ff:['Service','Status','Rate'],
+    rows:[{n:'UI/UX Design',v:'$125/hr',s:'Active',c:'#00b289'},{n:'Web Development',v:'$150/hr',s:'Active',c:'#00b289'},{n:'Brand Strategy',v:'$200/hr',s:'Active',c:'#00b289'},{n:'SEO Consulting',v:'$95/hr',s:'Paused',c:'#999'}],
+    board:{cols:[{h:'Active',items:['UI/UX Design','Web Dev','Brand Strategy']},{h:'Paused',items:['SEO Consulting']},{h:'Archived',items:['Print Design']}]},
+    chart:{lbls:['Design','Dev','Brand','SEO','Mgmt'],vals:[42,28,15,8,7]}},
+  ratecards:{label:'Rate Cards',section:'Finance',xf:['Rate Card','Month','Client Type'],yf:['Revenue ($)','Avg Rate','Clients'],gf:['Rate Card','Client Type','Month'],ff:['Rate Card','Status'],
+    rows:[{n:'Agency Standard',v:'$125–150/hr',s:'Default',c:'#00b289'},{n:'Enterprise Rate',v:'$175/hr',s:'Active',c:'#3498db'},{n:'Startup Discount',v:'$90/hr',s:'Active',c:'#9b59b6'},{n:'Non-Profit Rate',v:'$70/hr',s:'Archived',c:'#999'}],
+    board:{cols:[{h:'Active',items:['Agency Std','Enterprise','Startup']},{h:'Archived',items:['Non-Profit','Old Rate']}]},
+    chart:{lbls:['Oct','Nov','Dec','Jan','Feb','Mar'],vals:[12,9,14,8,11,16]}},
+  suppliers:{label:'Suppliers',section:'Finance',xf:['Supplier','Month','Category'],yf:['Spend ($)','Order Count'],gf:['Supplier','Category','Month'],ff:['Supplier','Status','Category'],
+    rows:[{n:'PrintCo – Print Services',v:'$800–2,000',s:'Active',c:'#00b289'},{n:'StockPhoto Pro',v:'$29/mo',s:'Active',c:'#00b289'},{n:'TechHardware Inc.',v:'Per project',s:'Inactive',c:'#999'},{n:'CloudServices Ltd.',v:'$234/mo',s:'Active',c:'#00b289'}],
+    board:{cols:[{h:'Active',items:['PrintCo','StockPhoto','CloudServices']},{h:'Inactive',items:['TechHardware']}]},
+    chart:{lbls:['Sep','Oct','Nov','Dec','Jan','Feb'],vals:[1200,1450,980,2100,1600,1870]}},
+  purchaseorders:{label:'Purchase Orders',section:'Finance',xf:['Month','Supplier','Status'],yf:['PO Amount ($)','Count'],gf:['Status','Supplier','Month'],ff:['Status','Supplier','Amount'],
+    rows:[{n:'PO-0012 – PrintCo',v:'$1,800',s:'Approved',c:'#00b289'},{n:'PO-0013 – CloudServices',v:'$234',s:'Pending',c:'#f39c12'},{n:'PO-0014 – StockPhoto Pro',v:'$29',s:'Approved',c:'#00b289'},{n:'PO-0015 – TechHardware',v:'$4,200',s:'Draft',c:'#999'}],
+    board:{cols:[{h:'Draft',items:['PO-0015']},{h:'Pending',items:['PO-0013']},{h:'Approved',items:['PO-0012','PO-0014']}]},
+    chart:{lbls:['Sep','Oct','Nov','Dec','Jan','Feb'],vals:[3200,4500,2800,6100,3900,5400]}}
+};
+
+var VM={list:{label:'List',isChart:false},board:{label:'Board',isChart:false},bar:{label:'Bar Chart',isChart:true},line:{label:'Line Chart',isChart:true}};
+
+function switchTab(t){
+  document.querySelectorAll('.tab').forEach(function(x){x.classList.remove('active');});
+  document.querySelectorAll('.panel').forEach(function(x){x.classList.remove('active');});
+  document.getElementById('tab-'+t).classList.add('active');
+  document.getElementById('panel-'+t).classList.add('active');
+}
+
+function openModal(wid){
+  editId = wid||null;
+  resetModal();
+  if(wid){
+    var w=widgets.find(function(x){return x.id===wid;});
+    if(w){
+      selE=w.entity; selV=w.viz;
+      document.querySelectorAll('.ecard').forEach(function(c){ if(c.dataset.e===selE) c.classList.add('sel'); });
+      document.getElementById('m-title').textContent='Edit widget';
+      document.getElementById('m-edit-badge').style.display='inline-block';
+    }
+  } else {
+    document.getElementById('m-title').textContent='Add a widget';
+    document.getElementById('m-edit-badge').style.display='none';
+  }
+  document.getElementById('ov').classList.add('open');
+  switchTab('cv');
+}
+
+function closeModal(){ document.getElementById('ov').classList.remove('open'); }
+function overlayClick(e){ if(e.target===document.getElementById('ov')) closeModal(); }
+
+function resetModal(){
+  step=1; selE=null; selV=null;
+  document.querySelectorAll('.ecard').forEach(function(c){c.classList.remove('sel');});
+  document.querySelectorAll('.vcard').forEach(function(c){c.classList.remove('sel');});
+  document.getElementById('wname').value='';
+  document.getElementById('flist').innerHTML='';
+  goStep(1);
+}
+
+function goStep(n){
+  step=n;
+  document.querySelectorAll('.spanel').forEach(function(p){p.classList.remove('active');});
+  document.getElementById('s'+n).classList.add('active');
+  updatePips(n); updateFooter(n);
+  if(n===3) fillStep3();
+}
+
+function updatePips(a){
+  [1,2,3].forEach(function(n){
+    var p=document.getElementById('pip'+n);
+    p.classList.remove('active','done');
+    if(n<a) p.classList.add('done');
+    else if(n===a) p.classList.add('active');
+  });
+  document.getElementById('sc12').classList.toggle('done',a>1);
+  document.getElementById('sc23').classList.toggle('done',a>2);
+}
+
+function updateFooter(n){
+  var back=document.getElementById('btn-back'), nxt=document.getElementById('btn-next');
+  back.style.display=n>1?'inline-flex':'none';
+  if(n===3){
+    nxt.textContent=editId?'Save Changes':'Add Widget';
+    nxt.disabled=false;
+  } else {
+    nxt.textContent='Continue';
+    nxt.disabled=(n===1&&!selE)||(n===2&&!selV);
+  }
+}
+
+function goNext(){
+  if(step===1&&selE) goStep(2);
+  else if(step===2&&selV) goStep(3);
+  else if(step===3) saveWidget();
+}
+function goBack(){ if(step>1) goStep(step-1); }
+
+function pickEntity(k,el){
+  document.querySelectorAll('.ecard').forEach(function(c){c.classList.remove('sel');});
+  el.classList.add('sel'); selE=k;
+  document.getElementById('btn-next').disabled=false;
+}
+
+function pickViz(k,el){
+  document.querySelectorAll('.vcard').forEach(function(c){c.classList.remove('sel');});
+  el.classList.add('sel'); selV=k;
+  document.getElementById('btn-next').disabled=false;
+  document.getElementById('e-sum-lbl').textContent=EM[selE].label;
+}
+
+function fillStep3(){
+  var em=EM[selE], vm=VM[selV];
+  document.getElementById('cfg-sum').textContent=em.label+' \u00b7 '+vm.label;
+  if(!document.getElementById('wname').value){
+    var w=editId?widgets.find(function(x){return x.id===editId;}):null;
+    document.getElementById('wname').value=w?w.name:em.label+' '+vm.label;
+  }
+  var ax=document.getElementById('axsec');
+  if(vm.isChart){
+    ax.classList.add('vis');
+    fillSel('xsel',em.xf);
+    fillSel('ysel',em.yf);
+    var w=editId?widgets.find(function(x){return x.id===editId;}):null;
+    if(w&&w.xAxis) setSelVal('xsel',w.xAxis);
+    if(w&&w.yAxis) setSelVal('ysel',w.yAxis);
+  } else {
+    ax.classList.remove('vis');
+  }
+  fillSel('gbsel',['None'].concat(em.gf));
+  var w2=editId?widgets.find(function(x){return x.id===editId;}):null;
+  if(w2&&w2.groupBy) setSelVal('gbsel',w2.groupBy);
+  document.getElementById('flist').innerHTML='';
+}
+
+function fillSel(id,opts){ document.getElementById(id).innerHTML=opts.map(function(o){return '<option>'+o+'</option>';}).join(''); }
+function setSelVal(id,v){ var s=document.getElementById(id); for(var i=0;i<s.options.length;i++) if(s.options[i].value===v){s.selectedIndex=i;break;} }
+
+function addFilter(){
+  var em=EM[selE], id='f'+Date.now(), row=document.createElement('div');
+  row.className='frow'; row.id=id;
+  row.innerHTML='<select class="csel">'+em.ff.map(function(f){return '<option>'+f+'</option>';}).join('')+'</select>'
+    +'<select class="csel"><option>is</option><option>is not</option><option>contains</option><option>&gt;</option><option>&lt;</option></select>'
+    +'<input class="cinp" type="text" placeholder="Value..." style="max-width:110px"/>'
+    +'<button class="frm" onclick="document.getElementById(\''+id+'\').remove()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button>';
+  document.getElementById('flist').appendChild(row);
+}
+
+function saveWidget(){
+  var em=EM[selE], vm=VM[selV];
+  var name=document.getElementById('wname').value||(em.label+' '+vm.label);
+  var xAxis=document.getElementById('xsel').value||'';
+  var yAxis=document.getElementById('ysel').value||'';
+  var groupBy=document.getElementById('gbsel').value||'None';
+  if(editId){
+    var w=widgets.find(function(x){return x.id===editId;});
+    if(w){ w.entity=selE; w.viz=selV; w.name=name; w.xAxis=xAxis; w.yAxis=yAxis; w.groupBy=groupBy; w.em=em; w.vm=vm; }
+    closeModal(); renderWidgets(); toast('Widget updated!');
+  } else {
+    widgets.push({id:Date.now(),entity:selE,viz:selV,name:name,xAxis:xAxis,yAxis:yAxis,groupBy:groupBy,em:em,vm:vm});
+    closeModal(); renderWidgets(); toast('Widget "'+name+'" added!');
+  }
+}
+
+function removeWidget(id){ widgets=widgets.filter(function(w){return w.id!==id;}); renderWidgets(); }
+function editWidget(id){ openModal(id); }
+
+function badgeCls(s){
+  var sl=s.toLowerCase();
+  if(['paid','active','approved','completed','accepted','received','balanced','recorded','signed','submitted','billable','won','viewed'].some(function(x){return sl.includes(x);})) return 'bg';
+  if(['sent','in progress','qualified','upcoming','projected'].some(function(x){return sl.includes(x);})) return 'bb';
+  if(['overdue','declined','risk','fully booked','expiring'].some(function(x){return sl.includes(x);})) return 'br2';
+  if(['pending','under review','draft','in review','partial','processing'].some(function(x){return sl.includes(x);})) return 'bo';
+  if(['archived','inactive','closed','paused','non-billable','ended'].some(function(x){return sl.includes(x);})) return 'bgr';
+  if(['recurring','default','high'].some(function(x){return sl.includes(x);})) return 'bpu';
+  return 'bgr';
+}
+
+function fmtVal(v){
+  if(v>=1000000) return '$'+(v/1000000).toFixed(1)+'M';
+  if(v>=1000) return '$'+(v/1000).toFixed(0)+'k';
+  return v.toString();
+}
+
+function getBody(w){
+  var em=w.em||EM[w.entity], vm=w.vm||VM[w.viz];
+  var rows=em.rows||[], chart=em.chart||{lbls:[],vals:[]};
+  if(w.viz==='list'){
+    return '<div class="mlist">'+rows.map(function(r){return '<div class="mrow"><div class="mdot" style="background:'+r.c+'"></div><div class="mname">'+esc(r.n)+'</div><span class="mbadge '+badgeCls(r.s)+'">'+esc(r.s)+'</span><div class="mval">'+esc(r.v)+'</div></div>';}).join('')+'</div>'+(w.groupBy&&w.groupBy!=='None'?'<div style="font-size:10px;color:var(--n9);margin-top:8px">Grouped by: <strong>'+esc(w.groupBy)+'</strong></div>':'');
+  }
+  if(w.viz==='board'){
+    var bd=em.board||{cols:[{h:'Open',items:['Item 1','Item 2']},{h:'In Progress',items:['Item 3']},{h:'Done',items:['Item 4']}]};
+    return '<div class="mboard">'+bd.cols.map(function(c){return '<div class="mcol"><div class="mcol-hd">'+esc(c.h)+' <span style="opacity:.5">'+c.items.length+'</span></div>'+c.items.map(function(i){return '<div class="mcard">'+esc(i)+'</div>';}).join('')+'</div>';}).join('')+'</div>'+(w.groupBy&&w.groupBy!=='None'?'<div style="font-size:10px;color:var(--n9);margin-top:8px">Grouped by: <strong>'+esc(w.groupBy)+'</strong></div>':'');
+  }
+  if(w.viz==='bar'){
+    var vals=chart.vals, lbls=chart.lbls, mx=Math.max.apply(null,vals);
+    var sub=(w.yAxis||em.yf[0])+' by '+(w.xAxis||em.xf[0]);
+    return '<div class="mbc"><div class="mbc-sub">'+esc(sub)+'</div><div class="mbars">'+vals.map(function(v,i){return '<div class="mbc-col"><div class="mbc-val">'+fmtVal(v)+'</div><div class="mbc-fill" style="height:'+Math.round((v/mx)*95)+'%"></div><div class="mbc-lbl">'+esc(lbls[i]||'')+'</div></div>';}).join('')+'</div></div>'+(w.groupBy&&w.groupBy!=='None'?'<div style="font-size:10px;color:var(--n9);margin-top:6px">Grouped by: <strong>'+esc(w.groupBy)+'</strong></div>':'');
+  }
+  if(w.viz==='line'){
+    var vals2=chart.vals2||chart.vals, lbls2=chart.lbls, mx2=Math.max.apply(null,vals2), mn2=Math.min.apply(null,vals2), rng=mx2-mn2||1;
+    var W=400,H=90,pad=8;
+    var pts=vals2.map(function(v,i){var x=pad+i/(vals2.length-1)*(W-2*pad);var y=H-pad-((v-mn2)/rng)*(H-2*pad);return x+','+y;}).join(' ');
+    var last=vals2.map(function(v,i){var x=pad+i/(vals2.length-1)*(W-2*pad);var y=H-pad-((v-mn2)/rng)*(H-2*pad);return[x,y];});
+    var areaD='M'+last.map(function(p){return p[0]+' '+p[1];}).join(' L')+' L'+last[last.length-1][0]+' '+H+' L'+last[0][0]+' '+H+' Z';
+    var sub2=(w.yAxis||em.yf[0])+' over '+(w.xAxis||em.xf[0]);
+    return '<div class="mbc-sub">'+esc(sub2)+'</div><svg class="mlc" viewBox="0 0 '+W+' '+H+'" preserveAspectRatio="none"><defs><linearGradient id="lg'+w.id+'" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stop-color="#00b289" stop-opacity=".25"/><stop offset="100%" stop-color="#00b289" stop-opacity="0"/></linearGradient></defs><path d="'+areaD+'" fill="url(#lg'+w.id+')" stroke="none"/><polyline points="'+pts+'" fill="none" stroke="#00b289" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg><div class="mlc-lbl">'+lbls2.map(function(l){return '<span>'+esc(l)+'</span>';}).join('')+'</div>'+(w.groupBy&&w.groupBy!=='None'?'<div style="font-size:10px;color:var(--n9);margin-top:4px">Grouped by: <strong>'+esc(w.groupBy)+'</strong></div>':'');
+  }
+  return '';
+}
+
+function vizIcon(v){
+  var icons={list:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>',board:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="18" rx="1"/><rect x="14" y="3" width="7" height="10" rx="1"/></svg>',bar:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/><line x1="2" y1="20" x2="22" y2="20"/></svg>',line:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>'};
+  return icons[v]||icons.list;
+}
+
+function esc(s){ return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;'); }
+
+function renderWidgets(){
+  var g=document.getElementById('wgrid'); g.innerHTML='';
+  if(!widgets.length){
+    var e=document.createElement('div'); e.className='empty'; e.style.gridColumn='1/-1';
+    e.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="color:var(--dd)"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></svg><p>No widgets yet. Add one to get started.</p><button class="ecta" onclick="openModal()"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add your first widget</button>';
+    g.appendChild(e);
+  } else {
+    widgets.forEach(function(w){
+      var em=w.em||EM[w.entity];
+      var c=document.createElement('div'); c.className='wcard'; c.id='w'+w.id;
+      c.innerHTML='<div class="whd"><div class="whd-icon">'+vizIcon(w.viz)+'</div><span class="wtitle">'+esc(w.name)+'</span><span class="wetag">'+esc(em.label)+'</span><div class="wac"><button class="wab" title="Edit" onclick="editWidget('+w.id+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z"/></svg></button><button class="wab" title="Remove" onclick="removeWidget('+w.id+')"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg></button></div></div><div class="wbody">'+getBody(w)+'</div>';
+      g.appendChild(c);
+    });
+    var b=document.createElement('button'); b.className='add-btn'; b.onclick=openModal;
+    b.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>Add widget';
+    g.appendChild(b);
+  }
+}
+
+function toast(msg){
+  var t=document.getElementById('toast'); document.getElementById('toast-msg').textContent=msg;
+  t.classList.add('show'); setTimeout(function(){t.classList.remove('show');},2600);
+}
+
+renderWidgets();
+switchTab('lp');
+</script>
+</body>
+</html>
